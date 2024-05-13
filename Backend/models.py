@@ -15,7 +15,7 @@ class User(Model):
     is_verified = fields.BooleanField(default=False)
     role = fields.CharField(max_length=20, null=False, default="customer")
     join_date = fields.DatetimeField(auto_now_add=True)
-    address_id = fields.ForeignKeyField("models.Address", related_name="user")
+    address_id = fields.ForeignKeyField("models.Address", related_name="user", null=True)
 
 
 
@@ -50,7 +50,7 @@ class Plan(Model):
 
 
 user_pydantic = pydantic_model_creator(User, name="User", exclude=("is_verified", "role"))
-user_pydanticIn = pydantic_model_creator(User, name="UserIn", exclude_readonly=True)
+user_pydanticIn = pydantic_model_creator(User, name="UserIn", exclude_readonly=True, exclude=("is_verified", "role", "join_date"))
 user_pydanticOut = pydantic_model_creator(User, name="UserOut", exclude=("password", "is_verfified", "role", "join_date"))
 
 address_pydantic = pydantic_model_creator(Address, name="Address")

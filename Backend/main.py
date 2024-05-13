@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from tortoise.contrib.fastapi import register_tortoise
+from routers import auth
 from dotenv import dotenv_values
 
 app = FastAPI()
+
+app.include_router(auth.router)
 
 config_credentials = dotenv_values(".env")
 
