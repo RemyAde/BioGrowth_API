@@ -4,7 +4,7 @@ sys.path.append("..")
 
 from fastapi import APIRouter, Request, HTTPException, status
 from models import *
-from auth_functions import get_hashed_password, verify_token
+from routers_utils.auth_functions import get_hashed_password, verify_token
 
 # signals
 from tortoise.signals import post_save
@@ -14,7 +14,7 @@ from tortoise import BaseDBAsyncClient
 # response classes
 from fastapi.responses import HTMLResponse
 
-from emails import *
+from routers_utils.emails import *
 
 # templates
 from fastapi.templating import Jinja2Templates
@@ -45,8 +45,7 @@ async def user_registration(user: user_pydanticIn): # type: ignore
     new_user = await user_pydantic.from_tortoise_orm(user_obj)
     return{
         "status" : "ok",
-        "data" : f"Hello {new_user.username}, thanks for choosing BioGrowth. Please
-        check your email inbox and click on the link to confirm your registration" 
+        "data" : f"""Hello {new_user.username}, thanks for choosing BioGrowth. Please check your email inbox and click on the link to confirm your registration""" 
     }
 
 
