@@ -40,6 +40,7 @@ class Product(Model):
     product_image = fields.CharField(max_length=200, null=False, default="productDefault.jpg")
     plan = fields.ForeignKeyField("models.Plan", related_name="products")
     owner = fields.ForeignKeyField("models.User", related_name="products")
+    # remove owner field
 
 
 class Plan(Model):
@@ -47,6 +48,8 @@ class Plan(Model):
     name = fields.CharField(max_length=20, null=False, index=True)
     monthly_price = fields.DecimalField(max_digits=12, decimal_places=2)
     annual_price = fields.DecimalField(max_digits=12, decimal_places=2)
+    # add a percentage _discount for annual_price via alembic
+    # add owner field via alembic
 
 
 user_pydantic = pydantic_model_creator(User, name="User", exclude=("is_verified", "role"))
@@ -60,4 +63,4 @@ product_pydantic = pydantic_model_creator(Product, name="Product")
 product_pydanticIn = pydantic_model_creator(Product, name="ProductIn", exclude_readonly=True)
 
 plan_pydantic = pydantic_model_creator(Plan, name="Plan")
-plan_pydanticIn = pydantic_model_creator(Plan, name="PlanIn", exclude="owner")
+plan_pydanticIn = pydantic_model_creator(Plan, name="PlanIn", exclude_readonly=True)
