@@ -38,7 +38,7 @@ ipython_config.py
 cython_debug
 
 ### VisualStudioCode ###
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -55,3 +55,7 @@ cython_debug
 # Ignore all local history of files
 .history
 .ionide
+
+# Ignore database files
+*.db
+migrations/

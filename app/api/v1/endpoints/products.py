@@ -1,27 +1,12 @@
-import sys
-sys.path.append("..")
-
-
-from fastapi import APIRouter, Request, HTTPException, status
-from .auth import get_current_user
-from models import *
+from fastapi import APIRouter, Request, HTTPException, status, Depends
+from db.models.product import Product
+from db.schemas.product import product_pydantic, product_pydanticIn
+from db.schemas.user import user_pydantic
+from fastapi.responses import JSONResponse
+import os
 
 # Authentication
-from routers_utils.auth_functions import *
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
-# signals
-from tortoise.signals import post_save
-from typing import List, Optional, Type
-from tortoise import BaseDBAsyncClient
-
-# response classes
-from fastapi.responses import HTMLResponse
-
-from routers_utils.emails import *
-
-# templates
-from fastapi.templating import Jinja2Templates
+from api.v1.endpoints.auth import get_current_user
 
 # image upload
 from fastapi import File, UploadFile
@@ -34,38 +19,30 @@ router = APIRouter(
     tags=["/product"]
 )
 
-
-oauth_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
-
-# static file setup config
-router.mount("/static", StaticFiles(directory="../static"), name="static")
-
+UPLOAD_DIR = "app/static/uploads/products"
 
 @router.post("/upload/product_image/{product_id}")
 async def create_upload_file(product_id: int, file: UploadFile = File(...),
                              user: user_pydantic = Depends(get_current_user)): # type: ignore
 
-    FILEPATH = "../static/images/"
     filename = file.filename
 
     # image.png >> ["image", "png"]
     extension = filename.split(".")[1]
 
-    if extension not in ["png", "jpg", "webp"]:
-        return {
-            "status": "error", 
-            "detail": "File extension not allowed"}
+    if not file.filename.endswith(("png", "jpg", "jpeg", "webp")):
+        raise HTTPException(status_code=400, detail="Invalid file format")
     
     # /static/images/5uc53jj53.jpg
     token_name = secrets.token_hex(10)+"."+extension
-    generated_name = FILEPATH + token_name
+    file_path = os.path.join(UPLOAD_DIR, token_name)
     file_content = await file.read()
 
-    with open(generated_name, "wb") as img_file:
+    with open(file_path, "wb") as img_file:
         img_file.write(file_content)
 
     # PILLOW - scale
-    img = Image.open(generated_name)
+    img = Image.open(file_path)
     # (200, 200) for profile picture
     img = img.resize(size = (300, 500))
 
@@ -84,8 +61,10 @@ async def create_upload_file(product_id: int, file: UploadFile = File(...),
             headers={"WWW-Authenticate": "Bearer"}
             )
     
-    file_url = "localhost:8000" + generated_name[1:]
-    return {
-        "status": "ok",
-        "filename": file_url
-    }
+    return JSONResponse(content={"filename": file_path})
+    
+    # file_url = "localhost:8000" + generated_name
+    # return {
+    #     "status": "ok",
+    #     "filename": file_url
+    # }

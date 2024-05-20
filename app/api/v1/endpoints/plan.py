@@ -1,10 +1,9 @@
-import sys
-sys.path.append("..")
-
-
 from fastapi import APIRouter, Request, HTTPException, status, Depends
 from .auth import get_current_user
-from models import *
+from db.models.plan import Plan
+from db.schemas.plan import plan_pydantic, plan_pydanticIn
+from db.schemas.user import user_pydantic, user_pydanticIn
+
 
 router = APIRouter(
     prefix="/plan",

@@ -1,26 +1,23 @@
-import sys
-sys.path.append("..")
-
-
-from fastapi import APIRouter, Request, HTTPException, status
-from models import *
+from fastapi import APIRouter, Request, HTTPException, BackgroundTasks, status, Depends
+from db.schemas.user import *
 
 # Authentication
-from routers_utils.auth_functions import *
+from core.security import get_hashed_password, verify_token
+from api.v1.dependencies.auth import token_generator, get_current_user
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
-# signals
-from tortoise.signals import post_save
-from typing import List, Optional, Type
-from tortoise import BaseDBAsyncClient
 
 # response classes
 from fastapi.responses import HTMLResponse
 
-from routers_utils.emails import *
+from utils.email import *
 
 # templates
 from fastapi.templating import Jinja2Templates
+from main import templates
+
+# dependencies
+from utils.email import send_verfication_email
+
 
 router = APIRouter(
     prefix="/auth",
@@ -36,22 +33,6 @@ async def generate_token(request_form: OAuth2PasswordRequestForm = Depends()):
     return {"access_token": token, "token_type": "bearer"}
 
 
-async def get_current_user(token: str = Depends(oauth_schema)):
-    try:
-        payload = jwt.decode(token, config_credentials["secret_key"], algorithms=config_credentials["algorithm"])
-        user = User.get(id = payload.get("id"))
-    except:
-        raise(
-            HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid user credentials",
-                headers={"WWW-Authenicate": "Bearer"}
-            )
-        )
-    
-    return await user
-
-
 @router.post("/me")
 async def user_login(user: user_pydanticIn = Depends(get_current_user)): # type: ignore
     return {
@@ -65,32 +46,19 @@ async def user_login(user: user_pydanticIn = Depends(get_current_user)): # type:
     }
 
 
-@post_save(User)
-async def send_verfication_email(
-    sender: "Type[User]",
-    instance: User,
-    created: bool,
-    using_db: "Optional[BaseDBAsyncClient]",
-    update_fields: List[str]
-) -> None:
-    
-    if created:
-        await send_email([instance.email], instance)
-
-
 @router.post("/registration")
-async def user_registration(user: user_pydanticIn): # type: ignore
+async def user_registration(user: user_pydanticIn, background_tasks: BackgroundTasks): # type: ignore
     user_info = user.dict(exclude_unset=True)
     user_info["password"] = get_hashed_password(user_info["password"])
     user_obj = await User.create(**user_info)
     new_user = await user_pydantic.from_tortoise_orm(user_obj)
+    # background_tasks.add_task(send_verfication_email, new_user)
     return{
         "status" : "ok",
         "data" : f"""Hello {new_user.username}, thanks for choosing BioGrowth. Please check your email inbox and click on the link to confirm your registration""" 
     }
 
 
-templates = Jinja2Templates(directory="../templates")
 @router.get("/verification", response_class=HTMLResponse)
 async def email_verification(request: Request, token: str):
     user = await verify_token(token)
