@@ -14,6 +14,7 @@ class Product(Model):
     rating = fields.IntField()
     product_image = fields.CharField(max_length=200, null=False, default="productDefault.jpg")
     plan = fields.ForeignKeyField("models.Plan", related_name="products")
+    date_created = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
         "product"
