@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, status, Depends
 from db.models.product import Product
-from db.models.plan import Plan
 from db.schemas.product import product_pydantic, product_pydanticIn
 from db.schemas.user import user_pydantic
 from fastapi.responses import JSONResponse
@@ -16,7 +15,9 @@ from api.v1.dependencies.product import (
     save_image,
     resize_image,
     fetch_product_and_plans,
-    check_product_plan
+    check_product_plan,
+    retrieve_product_detail,
+    check_product_owner
 )
 
 # image upload
@@ -68,24 +69,37 @@ async def create_upload_file(product_id: int, file: UploadFile = File(...),
 
 @router.get("/{product_id}")
 async def retreive_product(product_id: int):
-    product_obj = Product.get(id = product_id)
+    product_obj = await Product.get(id = product_id).prefetch_related("plan")
     if product_obj:
-        response = await product_pydantic.from_queryset_single(product_obj)
-
-        return {
-            "status":"ok",
-            "data":response
-        }
+        data = await retrieve_product_detail(product_obj)
+        return data
     raise HTTPException(
         status_code=401,
         detail="Product object not found"
     )
 
 
+@router.put("/{product_id}")
+async def edit_product(product_id: int, update_dict: product_pydanticIn, user: user_pydantic = Depends(get_current_user)): # type: ignore
+   product, owner = await check_product_owner(product_id, user)
+   if product:
+        update_dict = update_dict.dict(exclude_unset=True)
+        product = await product.update_from_dict(update_dict)
+        await product.save()
+        data = await retrieve_product_detail(product)
+        return data
+   else:
+        raise HTTPException(
+        status_code=404,
+        detail="Product not found",
+        headers={"WWW-Authenticate": "Bearer"}
+        )
+
+
 @router.delete("/{product_id}")
 async def delete_product(product_id: int, user: user_pydantic = Depends(get_current_user)): # type: ignore
-    product = await Product.get(id = product_id)
-    if product:
+    product, owner = await check_product_owner(product_id, user)
+    if product and owner==user:
         await product.delete()
         return {"status": "deleted"}
     else:

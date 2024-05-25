@@ -1,4 +1,5 @@
 from tortoise import Model, fields
+from decimal import Decimal
 from pydantic import BaseModel
 
 
@@ -11,7 +12,7 @@ class Product(Model):
     benefits = fields.CharField(max_length=250, null=True)
     usage = fields.CharField(max_length=250, null=True)
     review = fields.CharField(max_length=400)
-    rating = fields.IntField()
+    rating = fields.DecimalField(max_digits=1, decimal_places=2, default=Decimal('0.00'))
     product_image = fields.CharField(max_length=200, null=False, default="productDefault.jpg")
     plan = fields.ForeignKeyField("models.Plan", related_name="products")
     date_created = fields.DatetimeField(auto_now_add=True)

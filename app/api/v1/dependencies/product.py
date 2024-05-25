@@ -71,6 +71,41 @@ async def create_product(product_request, plan_id):
         }
     else:
         return {
-            "statues": "error",
+            "status": "error",
             "error": "Invalid Plan id"
         }
+    
+
+async def check_product_owner(product_id, user):
+    product = await Product.get(id = product_id)
+    plan = await product.plan
+    owner = await plan.owner
+
+    if owner!=user:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not authorized to perform this action"
+        )
+    return product, owner
+    
+
+async def retrieve_product_detail(product):
+    plan = await product.plan
+    response = await product_pydantic.from_tortoise_orm(product)
+    return {
+        "status":"ok",
+        "data":{
+            "id": response.id,
+            "name":response.name,
+            "summary":response.summary,
+            "description":response.description,
+            "key_features":response.key_features,
+            "benefits":response.benefits,
+            "usage":response.usage,
+            "review":response.review,
+            "rating":response.rating,
+            "product_image":response.product_image,
+            "date_created": response.date_created.strftime("%b %d %Y"),
+            "plan":plan.name
+        }
+    }
