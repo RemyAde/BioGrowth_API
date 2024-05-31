@@ -13,6 +13,7 @@ class User(Model):
     role = fields.CharField(max_length=20, null=False, default="customer")
     join_date = fields.DatetimeField(auto_now_add=True)
     address_id = fields.ForeignKeyField("models.Address", related_name="user", null=True)
+    plan = fields.ForeignKeyField("models.Plan", related_name="users", null=True)
     profile_image = fields.CharField(max_length=200, null=True, default="profileDefault.jpg")
 
     class Meta:

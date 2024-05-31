@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, status, Depends
-from .auth import get_current_user
+from api.v1.dependencies.auth import get_admin_user
 from db.models.plan import Plan
 from db.schemas.plan import plan_pydantic, plan_pydanticIn
 from db.schemas.user import user_pydantic, user_pydanticIn
@@ -31,7 +31,7 @@ async def get_plan(plan_id: int):
     }
 
 @router.post("/create")
-async def create_plan(plan_request: plan_pydanticIn, user: user_pydantic = Depends(get_current_user)): # type: ignore
+async def create_plan(plan_request: plan_pydanticIn, user: user_pydantic = Depends(get_admin_user)): # type: ignore
     plan_request = plan_request.dict(exclude_unset = True)
 
     try:
@@ -51,7 +51,7 @@ async def create_plan(plan_request: plan_pydanticIn, user: user_pydantic = Depen
     
 
 @router.delete("/delete/{plan_id}")
-async def delete_plan(plan_id: int, user: user_pydantic = Depends(get_current_user)): # type: ignore
+async def delete_plan(plan_id: int, user: user_pydantic = Depends(get_admin_user)): # type: ignore
     plan = await Plan.get(id = plan_id)
     if plan:
         await plan.delete()
