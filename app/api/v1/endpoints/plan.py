@@ -1,13 +1,16 @@
+from typing import List
 from fastapi import APIRouter, Request, HTTPException, status, Depends
 from api.v1.dependencies.auth import get_admin_user
 from db.models.plan import Plan
+from db.models.product import Product
 from db.schemas.plan import plan_pydantic, plan_pydanticIn
 from db.schemas.user import user_pydantic, user_pydanticIn
+from db.schemas.product import ProductOut
 
 
 router = APIRouter(
-    prefix="/plan",
-    tags=["/plan"]
+    prefix="/plans",
+    tags=["/plans"]
 )
 
 
@@ -30,13 +33,23 @@ async def get_plan(plan_id: int):
         "data": response
     }
 
+
+@router.get("/{plan_id}/products/", response_model=List[ProductOut])
+async def list_products_by_plan(plan_id: int):
+    plan = await Plan.get(id=plan_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    products = await Product.filter(plan_id=plan_id)
+    return products
+
+
 @router.post("/create")
 async def create_plan(plan_request: plan_pydanticIn, user: user_pydantic = Depends(get_admin_user)): # type: ignore
     plan_request = plan_request.dict(exclude_unset = True)
 
     try:
         # saves object
-        plan_obj = await Plan.create(**plan_request, owner=user)
+        plan_obj = await Plan.create(**plan_request)
         # return object json
         plan_obj = await plan_pydantic.from_tortoise_orm(plan_obj)
 

@@ -7,7 +7,6 @@ class Plan(Model):
     monthly_price = fields.DecimalField(max_digits=12, decimal_places=2)
     annual_price = fields.DecimalField(max_digits=12, decimal_places=2)
     annual_discount = fields.DecimalField(max_digits=12, decimal_places=2)
-    owner = fields.ForeignKeyField("models.User", related_name="plans")
     date_creaed = fields.DatetimeField(auto_now_add=True)
 
     class Meta:

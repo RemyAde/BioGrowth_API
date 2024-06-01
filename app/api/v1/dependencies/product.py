@@ -34,28 +34,9 @@ def resize_image(file_path: str):
     img.save(file_path)
 
 
-async def fetch_product_and_plans(product_id: int, user):
+async def fetch_product(product_id: int):
     product = await Product.get_or_none(id=product_id)
-    plans = await Plan.filter(owner=user)
-    return product, plans
-
-
-def check_product_plan(product, plans):
-    if product and plans:
-        plan_ids = [plan.id for plan in plans]
-        if product.plan_id in plan_ids:
-            return True
-        else:
-            raise HTTPException(
-                status_code=401,
-                detail="Product does not belong to user's plan",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
-    raise HTTPException(
-        status_code=401,
-        detail="Not authenticated to perform this action",
-        headers={"WWW-Authenticate": "Bearer"}
-    )
+    return product
 
 
 async def create_product(product_request, plan_id):
@@ -74,19 +55,6 @@ async def create_product(product_request, plan_id):
             "status": "error",
             "error": "Invalid Plan id"
         }
-    
-
-async def check_product_owner(product_id, user):
-    product = await Product.get(id = product_id)
-    plan = await product.plan
-    owner = await plan.owner
-
-    if owner!=user:
-        raise HTTPException(
-            status_code=401,
-            detail="You are not authorized to perform this action"
-        )
-    return product, owner
     
 
 async def retrieve_product_detail(product):
