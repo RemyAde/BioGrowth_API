@@ -1,3 +1,4 @@
+from datetime import datetime
 from tortoise.contrib.pydantic import pydantic_model_creator
 from db.models.product import Product
 from pydantic import BaseModel
@@ -18,7 +19,10 @@ class ProductOut(BaseModel):
     review: str
     rating: Decimal
     product_image: str
-    date_created: str
+    date_created: datetime
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.strftime("%b %d %Y")
+        }
