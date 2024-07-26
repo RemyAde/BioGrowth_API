@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from core.config import settings
 
-app = FastAPI()
+app = FastAPI(title="BioGrowth API")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -13,11 +13,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Include routers
-from api.v1.endpoints import products, plan, auth
+from api.v1.endpoints import products, plan, auth, cart
 
 app.include_router(products.router)
 app.include_router(plan.router)
 app.include_router(auth.router)
+app.include_router(cart.router)
 
 
 @app.get("/")
@@ -31,7 +32,8 @@ register_tortoise(
     modules={"models": ["db.models.user",
                         "db.models.address",
                         "db.models.plan",
-                        "db.models.product"]},
+                        "db.models.product",
+                        "db.models.cart"]},
     generate_schemas=True,
     add_exception_handlers=True
 )

@@ -17,6 +17,7 @@ TORTOISE_ORM = {
                 "app.db.models.address",
                 "app.db.models.plan",
                 "app.db.models.product",
+                "app.db.models.cart"
             ],
             "default_connection": "default"
         },
