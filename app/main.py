@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -9,6 +10,15 @@ app = FastAPI(title="BioGrowth API")
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+# Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = "https://biogrowwth.netlify.app/",
+    allow_credentials = True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Set up templates
 templates = Jinja2Templates(directory="templates")
 
@@ -37,3 +47,8 @@ register_tortoise(
     generate_schemas=True,
     add_exception_handlers=True
 )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, BackgroundTasks, status, Depends
+from fastapi import APIRouter, Request, HTTPException, BackgroundTasks, status, Depends, Response
 from db.schemas.user import *
 
 # Authentication
@@ -13,7 +13,7 @@ from utils.email import *
 
 # templates
 from fastapi.templating import Jinja2Templates
-from main import templates
+# from main import templates
 
 # dependencies
 from utils.email import send_verfication_email
@@ -28,9 +28,10 @@ oauth_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 
 @router.post("/token")
-async def generate_token(request_form: OAuth2PasswordRequestForm = Depends()):
+async def generate_token(response: Response, request_form: OAuth2PasswordRequestForm = Depends()):
     token = await token_generator(request_form.username, request_form.password)
-    return {"access_token": token, "token_type": "bearer"}
+    # return {"access_token": token, "token_type": "bearer"}
+    response.set_cookie(key="access_token", value=token, httponly=True, secure=True)
 
 
 @router.post("/me")
@@ -59,17 +60,17 @@ async def user_registration(user: user_pydanticIn, background_tasks: BackgroundT
     }
 
 
-@router.get("/verification", response_class=HTMLResponse)
-async def email_verification(request: Request, token: str):
-    user = await verify_token(token)
+# @router.get("/verification", response_class=HTMLResponse)
+# async def email_verification(request: Request, token: str):
+#     user = await verify_token(token)
 
-    if user and not user.is_verified:
-        user.is_verified = True
-        await user.save()
-        return templates.TemplateResponse("verification.html", {"request": request, "username": user.username})
+#     if user and not user.is_verified:
+#         user.is_verified = True
+#         await user.save()
+#         return templates.TemplateResponse("verification.html", {"request": request, "username": user.username})
 
-    raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Token",
-            headers={"WWW-Authenticate": "Bearer"}
-    )
+#     raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Invalid Token",
+#             headers={"WWW-Authenticate": "Bearer"}
+#     )

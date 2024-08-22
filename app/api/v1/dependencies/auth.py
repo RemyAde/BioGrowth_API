@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends, Request
 from db.models.user import *
 from fastapi.security import OAuth2PasswordBearer
 import jwt
@@ -39,8 +39,9 @@ async def token_generator(username: str, password: str):
     return token
 
 
-async def get_current_user(token: str = Depends(oauth_schema)):
+async def get_current_user(request: Request):
     try:
+        token = request.cookies.get("access_token")
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms = [settings.ALGORITM])
         user = User.get(id = payload.get("id"))
     except:
