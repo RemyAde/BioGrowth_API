@@ -31,7 +31,7 @@ oauth_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
 async def generate_token(response: Response, request_form: OAuth2PasswordRequestForm = Depends()):
     token = await token_generator(request_form.username, request_form.password)
     # return {"access_token": token, "token_type": "bearer"}
-    response.set_cookie(key="access_token", value=token, httponly=True, secure=True)
+    response.set_cookie(key="access_token", value=token, httponly=True, secure=False)
 
 
 @router.post("/me")

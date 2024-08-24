@@ -14,7 +14,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = "https://biogrowwth.netlify.app/",
+    allow_origins = "https://localhost:5500",
     allow_credentials = True,
     allow_methods=["*"],
     allow_headers=["*"],
