@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 # response classes
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 
 from utils.email import *
 
@@ -26,6 +27,10 @@ router = APIRouter(
 
 oauth_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
 
+class LoginRequest(BaseModel):
+    username: str 
+    password: str
+
 
 @router.post("/token")
 async def generate_token(response: Response, request_form: OAuth2PasswordRequestForm = Depends()):
@@ -34,8 +39,14 @@ async def generate_token(response: Response, request_form: OAuth2PasswordRequest
     response.set_cookie(key="access_token", value=token, httponly=True, secure=False)
 
 
+@router.post("/login")
+async def login_user(form: LoginRequest, response: Response):
+    token = await token_generator(form.username, form.password)
+    response.set_cookie(key="access_token", value=token, httponly=True)
+
+
 @router.post("/me")
-async def user_login(user: user_pydanticIn = Depends(get_current_user)): # type: ignore
+async def user_details(user: user_pydanticIn = Depends(get_current_user)): # type: ignore
     return {
         "status": "ok",
         "data": {
