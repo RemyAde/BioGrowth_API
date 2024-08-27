@@ -1,8 +1,6 @@
-from dotenv import dotenv_values
+from core.config import settings
 
-configuration_credentials = dotenv_values(".env")
-
-DATABASE_URL = configuration_credentials["DATABASE_URL"]
+DATABASE_URL = settings.DATABASE_URL
 
 
 TORTOISE_ORM = {

@@ -18,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 
 # dependencies
 from utils.email import send_verfication_email
+from core.config import settings
 
 
 router = APIRouter(
@@ -36,7 +37,7 @@ class LoginRequest(BaseModel):
 async def generate_token(response: Response, request_form: OAuth2PasswordRequestForm = Depends()):
     token = await token_generator(request_form.username, request_form.password)
     # return {"access_token": token, "token_type": "bearer"}
-    response.set_cookie(key="access_token", value=token, httponly=True, secure=False)
+    response.set_cookie(key="access_token", value=token, httponly=True)
 
 
 @router.post("/login")

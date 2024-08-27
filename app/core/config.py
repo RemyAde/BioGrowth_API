@@ -6,7 +6,11 @@ load_dotenv()
 
 class Settings():
     PROJECT_NAME: str = "BioGrowth App"
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    PRODUCTION = False
+    if PRODUCTION:
+        DATABASE_URL: str = os.getenv("PROD_DATABASE_URL")
+    else:
+        DATABASE_URL: str = os.getenv("DEV_DATABASE_URL")
     SECRET_KEY: str = os.getenv("secret_key")
     ALGORITM: str = os.getenv("algorithm")
     EMAIL: str = os.getenv("email")
